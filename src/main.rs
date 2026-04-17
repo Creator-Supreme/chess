@@ -2,13 +2,126 @@ use macroquad::{miniquad::conf::Icon, prelude::*};
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let board = layout_board();
+    let piece_sprite_sheet = load_texture(path).await.unwrap();
     loop {
         clear_background(GREEN);
 
-        next_frame().await;
+        draw_board(&board);
+
+        draw_pieces(&board);
+
+        next_frame().await
     }
 }
 
+fn draw_pieces(board: &Vec<BoardSquare>) {
+    for entry in board {
+        match entry.piece {
+            Piece::BlackBishop => {},
+            Piece::BlackKing => {},
+            Piece::BlackKnight => {},
+            Piece::BlackPawn => {},
+            Piece::BlackQueen => {},
+            Piece::BlackRook => {},
+            Piece::None => {},
+            Piece::WhiteBishop => {},
+            Piece::WhiteKing => {},
+            Piece::WhiteKnight => {},
+            Piece::WhitePawn => {},
+            Piece::WhiteQueen => {},
+            Piece::WhiteRook => {},
+
+        }
+    }
+}
+
+fn layout_board() -> Vec<BoardSquare> {
+    let mut board: Vec<BoardSquare> = vec![];
+    for i in 1..=8 {
+        for j in 1..=8 {
+            board.push(BoardSquare {
+                column: BoardColumn::from(i as u8 - 1),
+                row: j,
+                color: if (i + j) % 2 == 0 { "dark" } else { "light" },
+                piece: Piece::None,
+            });
+        }
+    }
+    board
+}
+
+fn draw_board(board: &Vec<BoardSquare>) {
+    let mut start = (
+        screen_width() / 2. - (64. * 8. / 2.),
+        screen_height() / 2. - (64. * 8. / 2.),
+    );
+    let initial_x = start.0;
+    let mut count = 0;
+    for entry in board {
+        if count % 8 == 0 && count != 0 {
+            start.1 += 64.;
+            start.0 = initial_x;
+        }
+        if entry.color == "light" {
+            draw_rectangle(start.0, start.1, 64., 64., WHITE);
+        } else if entry.color == "dark" {
+            draw_rectangle(start.0, start.1, 64., 64., BLACK);
+        }
+        start.0 += 64.;
+        count += 1;
+    }
+}
+
+enum Piece {
+    BlackBishop,
+    WhiteBishop,
+    BlackQueen,
+    WhiteQueen,
+    BlackKing,
+    WhiteKing,
+    BlackKnight,
+    WhiteKnight,
+    BlackRook,
+    WhiteRook,
+    BlackPawn,
+    WhitePawn,
+    None,
+}
+
+impl BoardColumn {
+    pub const fn from(i: u8) -> BoardColumn {
+        match i {
+            0 => BoardColumn::A,
+            1 => BoardColumn::B,
+            2 => BoardColumn::C,
+            3 => BoardColumn::D,
+            4 => BoardColumn::E,
+            5 => BoardColumn::F,
+            6 => BoardColumn::G,
+            7 => BoardColumn::H,
+
+            // This is the case that will never be reached
+            _ => BoardColumn::H,
+        }
+    }
+}
+enum BoardColumn {
+    A,
+    B,
+    C,
+    D,
+    E,
+    F,
+    G,
+    H,
+}
+struct BoardSquare {
+    column: BoardColumn,
+    row: u8,
+    color: &'static str,
+    piece: Piece,
+}
 fn window_conf() -> Conf {
     Conf {
         window_title: "Chess".to_owned(),
