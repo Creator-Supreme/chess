@@ -1,36 +1,32 @@
-#include <SFML/Graphics.hpp>
 #include "main.hpp"
+#include <SFML/Graphics.hpp>
 
 int main() {
 
-  window_handler window_handle;
+  windowHandle windowWrapper;
+  assetList assets;
 
-  asset_list assets;
-
-  while (window_handle.current().isOpen()) {
-    while (const std::optional event{window_handle.current().pollEvent()}) {
+  while (windowWrapper.current().isOpen()) {
+    while (const std::optional event{windowWrapper.current().pollEvent()}) {
       if (event->is<sf::Event::Closed>()) {
-        window_handle.current().close();
-      } else if (event->is<sf::Event::Resized>()) {
-
-        sf::FloatRect view(
-            {0, 0},
-            {static_cast<float>(event->getIf<sf::Event::Resized>()->size.x),
-             static_cast<float>(event->getIf<sf::Event::Resized>()->size.y)});
-        window_handle.current().setView(sf::View(view));
-
-        sf::Vector2u size{window_handle.current().getSize()};
-        assets[BOARD_BLACK_PERSPECTIVE].setPosition(
-            {static_cast<float>(size.x) / 2, static_cast<float>(size.y) / 2});
-        assets[BOARD_WHITE_PERSPECTIVE].setPosition(
-            {static_cast<float>(size.x) / 2, static_cast<float>(size.y) / 2});
+        windowWrapper.current().close();
+      }
+      if (event->is<sf::Event::Resized>()) {
+        windowWrapper.onWindowResize(event);
+        assets.onWindowResize(windowWrapper);
       }
     }
-    window_handle.current().clear(sf::Color::Cyan);
 
-    window_handle.current().draw(assets[BOARD_BLACK_PERSPECTIVE]);
+    windowWrapper.current().clear(windowWrapper.bakgroundColor());
 
-    window_handle.current().display();
+    switch (windowWrapper.getCurrentState()) {
+    case STATE::MENU:
+      break;
+    case STATE::PLAY:
+      break;
+    }
+
+    windowWrapper.current().display();
   }
 
   return 0;

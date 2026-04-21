@@ -1,8 +1,12 @@
 #pragma once
 #include "../assets/icon.hpp"
 #include "../assets/merged.hpp"
-#include <vector>
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
+#include <optional>
+#include <vector>
 
 enum NAME : char {
   BLACK_BUTTON_NORMAL = 0,
@@ -26,8 +30,38 @@ enum NAME : char {
   BLACK_PAWN = 18,
   BOARD_WHITE_PERSPECTIVE = 19,
 };
+enum class STATE : char { MENU, PLAY };
 
-class asset_list {
+class windowHandle {
+private:
+  sf::RenderWindow window{sf::VideoMode{{800, 600}}, "Chess"};
+  STATE currentState{STATE::MENU};
+  sf::Vector2f windowSize{window.getSize()};
+  sf::Color backgroundColor{176, 224, 230, 255};
+
+public:
+  windowHandle() {
+    sf::VideoMode desktop_size{sf::VideoMode::getDesktopMode()};
+    sf::Vector2u window_size{window.getSize()};
+    window.setPosition(
+        {static_cast<int>((desktop_size.size.x - window_size.x) / 2),
+         static_cast<int>((desktop_size.size.y - window_size.y) / 2)});
+    window.setFramerateLimit(60);
+    window.setIcon(sf::Image{chess_game_sport_svgrepo_com, 884});
+  }
+  constexpr sf::Color &bakgroundColor() { return backgroundColor; }
+  const STATE &getCurrentState() { return currentState; }
+  const sf::Vector2f &getCurrentSize() { return windowSize; }
+  sf::RenderWindow &current() { return window; }
+  const void onWindowResize(const std::optional<sf::Event> &event) {
+    sf::FloatRect view({0, 0}, {static_cast<sf::Vector2f>(
+                                   event->getIf<sf::Event::Resized>()->size)});
+    current().setView(sf::View(view));
+    windowSize = view.size;
+  }
+};
+
+class assetList {
 private:
   sf::Texture texture_assets{merged, 36192};
   std::vector<sf::Sprite> assets{
@@ -55,28 +89,19 @@ private:
 
 public:
   sf::Sprite &operator[](NAME something) { return this->assets[something]; }
-  asset_list() {
+  assetList() {
     for (sf::Sprite &c : assets) {
       sf::Vector2<float> temp{c.getGlobalBounds().size};
       c.setOrigin({temp.x / 2, temp.y / 2});
     }
   }
-};
+  const void onWindowResize(windowHandle &windowWrapper) {
+    sf::Vector2u size{windowWrapper.current().getSize()};
 
-class window_handler {
-private:
-  sf::RenderWindow window{sf::VideoMode{{800, 600}}, "Chess"};
+    assets[BOARD_BLACK_PERSPECTIVE].setPosition(
+        {static_cast<float>(size.x) / 2, static_cast<float>(size.y) / 2});
 
-public:
-  window_handler() {
-    sf::VideoMode desktop_size{sf::VideoMode::getDesktopMode()};
-    sf::Vector2u window_size{window.getSize()};
-    window.setPosition(
-        {static_cast<int>((desktop_size.size.x - window_size.x) / 2),
-         static_cast<int>((desktop_size.size.y - window_size.y) / 2)});
-    window.setFramerateLimit(60);
-    window.setIcon(sf::Image{chess_game_sport_svgrepo_com, 884});
+    assets[BOARD_WHITE_PERSPECTIVE].setPosition(
+        {static_cast<float>(size.x) / 2, static_cast<float>(size.y) / 2});
   }
-
-  sf::RenderWindow &current() { return window; }
 };
